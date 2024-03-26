@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>급식 정보 보기</title>
+  <link rel="stylesheet" href="schoolMeals.css" />
+  
+</head>
+<body>
+  <div class="container">
+    <h1>DGSW 학교 급식 정보</h1>
+    <div class="banner-container">
+      <div class="banner-wrapper">
+          <div class="banner" id="num1">
+              <h2>배너 1</h2>
+              <p>첫 번째 배너 내용입니다. 문주호 천재</p>
+          </div>
+          <div class="banner" id="num2">
+              <h2>배너 2</h2>
+              <p>두 번째 배너 내용입니다.문주호 처언재</p>
+          </div>
+          <div class="banner">
+              <h2>배너 3</h2>
+              <p>세 번째 배너 내용입니다.</p>
+          </div>
+      </div>
+    <label for="datePicker">날짜 선택:</label>
+    <input type="date" id="datePicker" />
+    <button id="showMealButton">급식 정보 보기</button>
+    <br>
+    <div id="mealInfo" class="meal-info"></div>
+    
+  </div>
+  </div>
+  <script>
+    //배너
+    var currentBanner = 0; // 현재 표시 중인 배너의 인덱스
+        var banners = document.querySelectorAll('.banner');
+        var bannerWrapper = document.querySelector('.banner-wrapper');
+
+        // 배너 슬라이드 함수
+        function slideBanner() {
+            currentBanner = (currentBanner + 1) % banners.length;
+            var offset = -currentBanner * 100;
+            bannerWrapper.style.transform = `translateX(${offset}%)`;
+        }
+
+        // 5초마다 배너 슬라이드
+        setInterval(slideBanner, 5000);
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const datePicker = document.getElementById("datePicker");
+      const showMealButton = document.getElementById("showMealButton");
+      const mealInfoDiv = document.getElementById("mealInfo");
+
+      // 기본값으로 오늘 날짜를 설정
+      const today = new Date();
+      const todayFormatted = today.toISOString().split("T")[0];
+      datePicker.value = todayFormatted;
+
+      // 급식 정보 표시 함수
+      async function displayMealInfo(date) {
+        const formattedDate = date.replace(/-/g, "");
+        const AUTH_KEY = "08be761d90b3463f8c8f51d5572bc4e4";
+        const apiUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=D10&SD_SCHUL_CODE=7240454&MLSV_YMD=${formattedDate}&Type=json&KEY=${AUTH_KEY}`;
+        
+        try {
+          const response = await fetch(apiUrl);
+          const data = await response.json();
+
+          if (data.mealServiceDietInfo[1].row.length === 0) {
+            mealInfoDiv.innerHTML = `<p>${date}의 급식 정보가 없습니다.</p>`;
+          } else {
+            mealInfoDiv.innerHTML = `
+              <h2>${date} 급식 정보</h2>
+              <p><br><strong>아침</strong> <br><br>: ${data.mealServiceDietInfo[1].row[0].DDISH_NM}</p>
+              <p><br><strong>점심</strong> <br><br>: ${data.mealServiceDietInfo[1].row[1].DDISH_NM}</p>
+              <p><br><strong>저녁</strong> <br><br>: ${data.mealServiceDietInfo[1].row[2].DDISH_NM}</p>
+            `;
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      // 버튼 클릭 시 급식 정보 업데이트
+      showMealButton.addEventListener("click", function () {
+        const selectedDate = datePicker.value;
+        displayMealInfo(selectedDate);
+      });
+
+      // 페이지 로드 시 기본 급식 정보 표시
+      displayMealInfo(todayFormatted);
+    });
+  </script>
+</body>
+</html>
